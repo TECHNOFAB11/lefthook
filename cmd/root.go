@@ -38,6 +38,10 @@ func newRootCmd() *cobra.Command {
 		&options.NoColors, "no-colors", false, "disable colored output",
 	)
 
+	rootCmd.PersistentFlags().StringVar(
+		&options.ConfigPath, "config", "", "custom config path",
+	)
+
 	// To be dropped in next releases.
 	rootCmd.Flags().BoolVarP(
 		&options.Force, "force", "f", false,

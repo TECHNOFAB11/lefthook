@@ -19,7 +19,7 @@ func Validate(opts *Options) error {
 		return fmt.Errorf("couldn't initialize lefthook: %w", err)
 	}
 
-	main, secondary, err := config.LoadKoanf(lefthook.Fs, lefthook.repo)
+	main, secondary, err := config.LoadKoanf(lefthook.Fs, lefthook.repo, lefthook.ConfigPath)
 	if err != nil {
 		return err
 	}

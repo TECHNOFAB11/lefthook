@@ -346,7 +346,7 @@ post-commit:
 				assert.NoError(afero.WriteFile(fs, path, []byte(content), 0o755))
 			}
 
-			cfg, err := config.Load(lefthook.Fs, repo)
+			cfg, err := config.Load(lefthook.Fs, repo, lefthook.ConfigPath)
 			assert.NoError(err)
 
 			// Create hooks
@@ -461,7 +461,7 @@ remotes:
 				assert.NoError(fs.Chtimes(configPath, timestamp, timestamp))
 			}
 
-			cfg, err := config.Load(lefthook.Fs, repo)
+			cfg, err := config.Load(lefthook.Fs, repo, lefthook.ConfigPath)
 			assert.NoError(err)
 
 			remote := cfg.Remotes[0]

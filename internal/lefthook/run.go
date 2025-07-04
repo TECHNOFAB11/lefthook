@@ -62,7 +62,7 @@ func (l *Lefthook) Run(hookName string, args RunArgs, gitArgs []string) error {
 	}
 
 	// Load config
-	cfg, err := config.Load(l.Fs, l.repo)
+	cfg, err := config.Load(l.Fs, l.repo, l.ConfigPath)
 	if err != nil {
 		var errNotFound config.ConfigNotFoundError
 		if ok := errors.As(err, &errNotFound); ok {
@@ -277,7 +277,7 @@ func ConfigHookCompletions(opts *Options) []string {
 }
 
 func (l *Lefthook) configHookCompletions() []string {
-	cfg, err := config.Load(l.Fs, l.repo)
+	cfg, err := config.Load(l.Fs, l.repo, l.ConfigPath)
 	if err != nil {
 		return nil
 	}
@@ -305,7 +305,7 @@ func ConfigHookJobCompletions(opts *Options, hookName string) []string {
 }
 
 func (l *Lefthook) configHookCommandCompletions(hookName string) []string {
-	cfg, err := config.Load(l.Fs, l.repo)
+	cfg, err := config.Load(l.Fs, l.repo, l.ConfigPath)
 	if err != nil {
 		return nil
 	}
@@ -332,7 +332,7 @@ func findJobNames(jobs []*config.Job) []string {
 }
 
 func (l *Lefthook) configHookJobCompletions(hookName string) []string {
-	cfg, err := config.Load(l.Fs, l.repo)
+	cfg, err := config.Load(l.Fs, l.repo, l.ConfigPath)
 	if err != nil {
 		return nil
 	}

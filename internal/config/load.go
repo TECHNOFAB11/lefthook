@@ -57,7 +57,24 @@ func (err ConfigNotFoundError) Error() string {
 	return err.message
 }
 
-func loadOne(k *koanf.Koanf, filesystem afero.Fs, root string, names []string) error {
+func loadConfig(k *koanf.Koanf, filesystem afero.Fs, config string) error {
+	extension := filepath.Ext(config)
+	log.Debug("loading config: ", config)
+	if err := k.Load(kfs.Provider(newIOFS(filesystem), config), parsers[extension], mergeJobsOption); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func loadOne(k *koanf.Koanf, filesystem afero.Fs, root string, names []string, configPath string) error {
+	if configPath != "" {
+		if ok, _ := afero.Exists(filesystem, configPath); !ok {
+			return ConfigNotFoundError{fmt.Sprintf("Config file \"%s\" not found!", configPath)}
+		}
+		return nil
+	}
+
 	for _, extension := range extensions {
 		for _, name := range names {
 			config := filepath.Join(root, name+extension)
@@ -65,23 +82,18 @@ func loadOne(k *koanf.Koanf, filesystem afero.Fs, root string, names []string) e
 				continue
 			}
 
-			log.Debug("loading config: ", config)
-			if err := k.Load(kfs.Provider(newIOFS(filesystem), config), parsers[extension], mergeJobsOption); err != nil {
-				return err
-			}
-
-			return nil
+			return loadConfig(k, filesystem, config)
 		}
 	}
 
 	return ConfigNotFoundError{fmt.Sprintf("No config files with names %q have been found in \"%s\"", names, root)}
 }
 
-func LoadKoanf(filesystem afero.Fs, repo *git.Repository) (*koanf.Koanf, *koanf.Koanf, error) {
+func LoadKoanf(filesystem afero.Fs, repo *git.Repository, configPath string) (*koanf.Koanf, *koanf.Koanf, error) {
 	main := koanf.New(".")
 
 	// Load main (e.g. lefthook.yml)
-	if err := loadOne(main, filesystem, repo.RootPath, MainConfigNames); err != nil {
+	if err := loadOne(main, filesystem, repo.RootPath, MainConfigNames, configPath); err != nil {
 		return nil, nil, err
 	}
 
@@ -120,7 +132,7 @@ func LoadKoanf(filesystem afero.Fs, repo *git.Repository) (*koanf.Koanf, *koanf.
 
 	// Load optional local config (e.g. lefthook-local.yml)
 	var noLocal bool
-	if err := loadOne(secondary, filesystem, repo.RootPath, LocalConfigNames); err != nil {
+	if err := loadOne(secondary, filesystem, repo.RootPath, LocalConfigNames, ""); err != nil {
 		var configNotFoundErr ConfigNotFoundError
 		if ok := errors.As(err, &configNotFoundErr); !ok {
 			return nil, nil, err
@@ -140,8 +152,8 @@ func LoadKoanf(filesystem afero.Fs, repo *git.Repository) (*koanf.Koanf, *koanf.
 }
 
 // Loads configs from the given directory with extensions.
-func Load(filesystem afero.Fs, repo *git.Repository) (*Config, error) {
-	main, secondary, err := LoadKoanf(filesystem, repo)
+func Load(filesystem afero.Fs, repo *git.Repository, configPath string) (*Config, error) {
+	main, secondary, err := LoadKoanf(filesystem, repo, configPath)
 	if err != nil {
 		return nil, err
 	}

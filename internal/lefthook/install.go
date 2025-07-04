@@ -80,7 +80,7 @@ func (l *Lefthook) readOrCreateConfig() (*config.Config, error) {
 		}
 	}
 
-	return config.Load(l.Fs, l.repo)
+	return config.Load(l.Fs, l.repo, l.ConfigPath)
 }
 
 func (l *Lefthook) configExists(path string) bool {
